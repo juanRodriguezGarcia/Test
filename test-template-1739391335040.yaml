@@ -215,3 +215,96 @@ Resources:
         \ Base service to allow a created IAM role to have permissions on Amazon Open\
         \ Search collections and indexes."
       Name: "bedrock-knowledge-base-2cgrgl"
+      
+https://workik.com/ai-powered-cloudformation-yaml-template-generator 
+ 
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template para crear un agente Bedrock con una base de conocimiento y protección, utilizando S3 como fuente de datos.
+
+Parameters:
+  BucketName:
+    Type: String
+    Description: Nombre del bucket S3 para almacenar la base de conocimiento.
+ 
+  KnowledgeBaseName:
+    Type: String
+    Description: Nombre de la base de conocimiento que se creará.
+ 
+  AgentName:
+    Type: String
+    Description: Nombre del agente Bedrock.
+
+Resources:
+  KnowledgeBaseBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: "ExpireOldVersions"
+            Status: Enabled
+            ExpirationInDays: 30
+
+  KnowledgeBase:
+    Type: AWS::Bedrock::KnowledgeBase
+    Properties:
+      KnowledgeBaseName: !Ref KnowledgeBaseName
+      Source:
+        S3:
+          Bucket: !Ref KnowledgeBaseBucket
+          Prefix: "knowledge/"
+      Description: "Base de conocimiento para el agente Bedrock."
+
+  IAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${AgentName}-Role"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: "bedrock.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: S3AccessPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:ListBucket
+                Resource:
+                  - !Sub "arn:aws:s3:::${KnowledgeBaseBucket}"
+                  - !Sub "arn:aws:s3:::${KnowledgeBaseBucket}/*"
+
+  BedrockAgent:
+    Type: AWS::Bedrock::Agent
+    Properties:
+      AgentName: !Ref AgentName
+      KnowledgeBaseArn: !GetAtt KnowledgeBase.Arn
+      RoleArn: !GetAtt IAMRole.Arn
+      ProtectionBarrier:
+        Type: "Security"
+        Details: "Configuración de protección para el agente Bedrock."
+
+Outputs:
+  BucketNameOutput:
+    Description: Nombre del bucket S3 creado para la base de conocimiento.
+    Value: !Ref KnowledgeBaseBucket
+
+  KnowledgeBaseArn:
+    Description: ARN de la base de conocimiento creada.
+    Value: !GetAtt KnowledgeBase.Arn
+
+  AgentRoleArn:
+    Description: ARN del rol IAM creado para el agente Bedrock.
+    Value: !GetAtt IAMRole.Arn
+
+  BedrockAgentName:
+    Description: Nombre del agente Bedrock creado.
+    Value: !Ref BedrockAgent
