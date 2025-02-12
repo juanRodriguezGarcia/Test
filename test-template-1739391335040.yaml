@@ -1,0 +1,217 @@
+---
+Metadata:
+  AWSToolsMetrics:
+    IaC_Generator: "arn:aws:cloudformation:us-west-2:134383757275:generatedTemplate/b1467068-ff41-4b0b-93ad-355e5883b624"
+Resources:
+  MemoryDBACL00openaccess00IHrgE:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::MemoryDB::ACL"
+    DeletionPolicy: "Retain"
+    Properties:
+      ACLName: "open-access"
+      Tags: []
+      UserNames:
+      - "default"
+  MemoryDBParameterGroup00defaultmemorydbredis7searchpreview00lcEX4:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::MemoryDB::ParameterGroup"
+    DeletionPolicy: "Retain"
+    Properties:
+      ParameterGroupName: "default.memorydb-redis7.search.preview"
+      Family: "memorydb_redis7.search.preview"
+      Description: "Default parameter group for memorydb_redis7.search.preview"
+  OpenSearchServerlessSecurityPolicy00encryption00phX4A:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::OpenSearchServerless::SecurityPolicy"
+    DeletionPolicy: "Retain"
+    Properties:
+      Policy: "{\"Rules\": [{\"Resource\": [\"collection/bedrock-knowledge-base-a18lwt\"\
+        ],\"ResourceType\": \"collection\"}],\"AWSOwnedKey\": true}"
+      Type: "encryption"
+      Description: "Custom encryption policy created by Amazon Bedrock Knowledge Base\
+        \ service to allow a created IAM role to have permissions on Amazon Open Search\
+        \ collections and indexes."
+      Name: "bedrock-knowledge-base-a18lwt"
+  MemoryDBUser00default00Luoln:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::MemoryDB::User"
+    DeletionPolicy: "Retain"
+    Properties:
+      Tags: []
+      UserName: "default"
+  IAMManagedPolicy00policyserviceroleAmazonBedrockOSSPolicyForKnowledgeBaseAmazonBedrockExecutionRoleForKnowledgeBasedemoanaliticarol0100Nbzk0:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::IAM::ManagedPolicy"
+    DeletionPolicy: "Retain"
+    Properties:
+      ManagedPolicyName: "AmazonBedrockOSSPolicyForKnowledgeBase_AmazonBedrockExecutionRoleForKnowledgeBase-demo-analitica-rol-01"
+      Path: "/service-role/"
+      Description: ""
+      Groups: []
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Resource:
+          - "arn:aws:aoss:us-west-2:134383757275:collection/fpzxco1yxcblvfleb5sd"
+          Action:
+          - "aoss:APIAccessAll"
+          Effect: "Allow"
+          Sid: "OpenSearchServerlessAPIAccessAllStatement"
+      Roles:
+      - "AmazonBedrockExecutionRoleForKnowledgeBase-demo-analitica-rol-01"
+      Users: []
+
+  IAMManagedPolicy00policyserviceroleAmazonBedrockS3PolicyForKnowledgeBaseAmazonBedrockExecutionRoleForKnowledgeBasedemoanaliticarol0100B5KOa:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::IAM::ManagedPolicy"
+    DeletionPolicy: "Retain"
+    Properties:
+      ManagedPolicyName: "AmazonBedrockS3PolicyForKnowledgeBase_AmazonBedrockExecutionRoleForKnowledgeBase-demo-analitica-rol-01"
+      Path: "/service-role/"
+      Description: ""
+      Groups: []
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Condition:
+            StringEquals:
+              aws:ResourceAccount:
+              - "134383757275"
+          Resource:
+          - "arn:aws:s3:::bucket-demo-ia-generativa"
+          Action:
+          - "s3:ListBucket"
+          Effect: "Allow"
+          Sid: "S3ListBucketStatement"
+        - Condition:
+            StringEquals:
+              aws:ResourceAccount:
+              - "134383757275"
+          Resource:
+          - "arn:aws:s3:::bucket-demo-ia-generativa/ruta-archivos/*"
+          Action:
+          - "s3:GetObject"
+          Effect: "Allow"
+          Sid: "S3GetObjectStatement"
+      Roles:
+      - "AmazonBedrockExecutionRoleForKnowledgeBase-demo-analitica-rol-01"
+      Users: []
+  IAMRole00AmazonBedrockExecutionRoleForKnowledgeBasedemoanaliticarol0100zlrra:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::IAM::Role"
+    DeletionPolicy: "Retain"
+    Properties:
+      Path: "/service-role/"
+      ManagedPolicyArns:
+      - Ref: "IAMManagedPolicy00policyserviceroleAmazonBedrockOSSPolicyForKnowledgeBaseAmazonBedrockExecutionRoleForKnowledgeBasedemoanaliticarol0100Nbzk0"
+      - Ref: "IAMManagedPolicy00policyserviceroleAmazonBedrockFoundationModelPolicyForKnowledgeBaseAmazonBedrockExecutionRoleForKnowledgeBasedemoanaliticarol0100Cw4EF"
+      - Ref: "IAMManagedPolicy00policyserviceroleAmazonBedrockS3PolicyForKnowledgeBaseAmazonBedrockExecutionRoleForKnowledgeBasedemoanaliticarol0100B5KOa"
+      MaxSessionDuration: 3600
+      RoleName: "AmazonBedrockExecutionRoleForKnowledgeBase-demo-analitica-rol-01"
+      Description: "Bedrock Knowledge Base access"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Condition:
+            StringEquals:
+              aws:SourceAccount: "134383757275"
+            ArnLike:
+              aws:SourceArn: "arn:aws:bedrock:us-west-2:134383757275:knowledge-base/*"
+          Action: "sts:AssumeRole"
+          Effect: "Allow"
+          Principal:
+            Service: "bedrock.amazonaws.com"
+          Sid: "AmazonBedrockKnowledgeBaseTrustPolicy"
+  IAMManagedPolicy00policyserviceroleAmazonBedrockFoundationModelPolicyForKnowledgeBaseAmazonBedrockExecutionRoleForKnowledgeBasedemoanaliticarol0100Cw4EF:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::IAM::ManagedPolicy"
+    DeletionPolicy: "Retain"
+    Properties:
+      ManagedPolicyName: "AmazonBedrockFoundationModelPolicyForKnowledgeBase_AmazonBedrockExecutionRoleForKnowledgeBase-demo-analitica-rol-01"
+      Path: "/service-role/"
+      Description: ""
+      Groups: []
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Resource:
+          - "arn:aws:bedrock:us-west-2::foundation-model/amazon.titan-embed-text-v2:0"
+          - "arn:aws:bedrock:us-west-2::foundation-model/anthropic.claude-3-5-sonnet-20240620-v1:0"
+          Action:
+          - "bedrock:InvokeModel"
+          Effect: "Allow"
+          Sid: "BedrockInvokeModelStatement"
+      Roles:
+      - "AmazonBedrockExecutionRoleForKnowledgeBase-demo-analitica-rol-01"
+      Users: []
+  S3Bucket00bucketdemoiagenerativa00nvY02:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::S3::Bucket"
+    DeletionPolicy: "Retain"
+    Properties:
+      PublicAccessBlockConfiguration:
+        RestrictPublicBuckets: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        BlockPublicAcls: true
+      BucketName: "bucket-demo-ia-generativa"
+      OwnershipControls:
+        Rules:
+        - ObjectOwnership: "BucketOwnerEnforced"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+        - BucketKeyEnabled: true
+          ServerSideEncryptionByDefault:
+            SSEAlgorithm: "AES256"
+  LogsLogGroup00awsvendedlogsbedrockknowledgebaseAPPLICATIONLOGSZZS357E5UV000duq0:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::Logs::LogGroup"
+    DeletionPolicy: "Retain"
+    Properties:
+      FieldIndexPolicies: []
+      LogGroupClass: "STANDARD"
+      LogGroupName: "/aws/vendedlogs/bedrock/knowledge-base/APPLICATION_LOGS/ZZS357E5UV"
+      DataProtectionPolicy: {}
+  OpenSearchServerlessSecurityPolicy00network00XnOpE:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::OpenSearchServerless::SecurityPolicy"
+    DeletionPolicy: "Retain"
+    Properties:
+      Policy: "[{\"Rules\": [{\"Resource\": [\"collection/bedrock-knowledge-base-a18lwt\"\
+        ],\"ResourceType\": \"dashboard\"}, {\"Resource\": [\"collection/bedrock-knowledge-base-a18lwt\"\
+        ],\"ResourceType\": \"collection\"}],\"AllowFromPublic\": true}]"
+      Type: "network"
+      Description: "Custom network policy created by Amazon Bedrock Knowledge Base\
+        \ service to allow a created IAM role to have permissions on Amazon Open Search\
+        \ collections and indexes."
+      Name: "bedrock-knowledge-base-a18lwt"
+  LogsResourcePolicy00AWSLogDeliveryWrite2015031900fkZk2:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::Logs::ResourcePolicy"
+    DeletionPolicy: "Retain"
+    Properties:
+      PolicyDocument: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"AWSLogDeliveryWrite1343405463\"\
+        ,\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"delivery.logs.amazonaws.com\"\
+        },\"Action\":[\"logs:CreateLogStream\",\"logs:PutLogEvents\"],\"Resource\"\
+        :\"arn:aws:logs:us-west-2:134383757275:log-group:/aws/vendedlogs/bedrock/knowledge-base/APPLICATION_LOGS/ZZS357E5UV:log-stream:*\"\
+        ,\"Condition\":{\"StringEquals\":{\"aws:SourceAccount\":\"134383757275\"},\"\
+        ArnLike\":{\"aws:SourceArn\":\"arn:aws:logs:us-west-2:134383757275:delivery-source:WdDeliverySource-762233542\"\
+        }}}]}"
+      PolicyName: "AWSLogDeliveryWrite20150319"
+  OpenSearchServerlessAccessPolicy00data00TxbeD:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::OpenSearchServerless::AccessPolicy"
+    DeletionPolicy: "Retain"
+    Properties:
+      Policy: "[{\"Rules\": [{\"Resource\": [\"collection/bedrock-knowledge-base-a18lwt\"\
+        ],\"Permission\": [\"aoss:DescribeCollectionItems\", \"aoss:CreateCollectionItems\"\
+        , \"aoss:UpdateCollectionItems\"],\"ResourceType\": \"collection\"}, {\"Resource\"\
+        : [\"index/bedrock-knowledge-base-a18lwt/*\"],\"Permission\": [\"aoss:UpdateIndex\"\
+        , \"aoss:DescribeIndex\", \"aoss:ReadDocument\", \"aoss:WriteDocument\", \"\
+        aoss:CreateIndex\"],\"ResourceType\": \"index\"}],\"Principal\": [\"arn:aws:iam::134383757275:role/service-role/AmazonBedrockExecutionRoleForKnowledgeBase-demo-analitica-rol-01\"\
+        , \"arn:aws:iam::134383757275:user/admin\"],\"Description\": \"\"}]"
+      Type: "data"
+      Description: "Custom data access policy created by Amazon Bedrock Knowledge\
+        \ Base service to allow a created IAM role to have permissions on Amazon Open\
+        \ Search collections and indexes."
+      Name: "bedrock-knowledge-base-2cgrgl"
