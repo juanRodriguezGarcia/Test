@@ -1,0 +1,107 @@
+// Define el directorio que quieres listar.
+// ¡IMPORTANTE! Asegúrate de que esta ruta exista en el servidor Jenkins (master)
+// y que el usuario de Jenkins tenga permisos para leerlo.
+def targetDirectory = "/var/lib/jenkins" // <- Puedes cambiar esto a un directorio de prueba como "/tmp" si prefieres
+
+def directoryContents = []
+
+try {
+    // Ejecuta el comando 'ls -1' para listar archivos/directorios, uno por línea.
+    // Es buena práctica usar la ruta absoluta a 'ls' si no estás seguro de tu PATH.
+    // Por ejemplo: "/bin/ls -1"
+    def proc = ["/bin/bash", "-c", "ls -1 \"${targetDirectory}\""].execute()
+
+    // Espera a que el comando termine su ejecución
+    proc.waitFor()
+
+    // Verifica el código de salida. 0 significa éxito.
+    if (proc.exitValue() == 0) {
+        // Lee cada línea de la salida estándar y la agrega a la lista.
+        // .trim() es importante para quitar cualquier espacio en blanco o salto de línea.
+        proc.text.readLines().each { line ->
+            def item = line.trim()
+            if (item) { // Solo agrega si la línea no está vacía
+                directoryContents.add(item)
+            }
+        }
+        // Opcional: Ordena los elementos alfabéticamente
+        directoryContents.sort()
+    } else {
+        // Si el comando falla, añade un mensaje de error legible para el usuario.
+        // proc.err.text contendrá la salida de error estándar del comando.
+        println "Error al listar directorio en el parámetro: ${proc.err.text}" // Esto irá al System Log de Jenkins
+        directoryContents.add("ERROR: No se pudo listar el directorio. " + proc.err.text)
+    }
+} catch (Throwable e) {
+    // Captura cualquier excepción de Groovy (ej. ruta no válida, problemas de permisos JVM)
+    println "Excepción en el script del parámetro al listar directorio: ${e.getMessage()}" // Esto irá al System Log
+    directoryContents.add("ERROR: Excepción al listar directorio: ${e.getMessage()}")
+}
+
+// Retorna la lista de elementos para llenar el desplegable
+return directoryContents
+
+
+
+
+
+
+
+
+
+
+
+// ¡IMPORTANTE! Reemplaza con la URL de tu repositorio Git
+// Asegúrate de que esta URL sea compatible con el tipo de credencial que usas.
+// Para SSH: git@github.com:tu-usuario/tu-repo.git
+// Para HTTPS: https://github.com/tu-usuario/tu-repo.git
+def repoUrl = "git@github.com:hdiegurosascol/co-hdi-jenkins-pipelines.git" // EJEMPLO: Ajusta para tu repo SSH o HTTPS
+
+// La variable 'GIT_CREDENTIALS' se inyecta por el plugin Active Choices
+// y contiene la credencial seleccionada.
+// Para SSH, esto debería manejar automáticamente el uso de la clave.
+// Para HTTPS, es más complejo si no tienes la credencial ya configurada en git.
+// A menudo, SSH es más sencillo de configurar para comandos git ls-remote.
+
+def branchList = []
+
+try {
+    // Definimos la ruta absoluta a 'git' si no está en el PATH del servidor Jenkins.
+    // Puedes verificar esto en la terminal del servidor con 'which git'.
+    def gitPath = "/usr/bin/git" // <- AJUSTA ESTA RUTA SI ES NECESARIO
+
+    // Construimos el comando git ls-remote.
+    // Nota: git ls-remote con SSH generalmente no necesita 'user:pass' en la URL,
+    // ya que el cliente SSH de Jenkins (configurado con tu CredentialId) se encarga de la autenticación.
+    def command = ["${gitPath}", "ls-remote", "--heads", repoUrl]
+
+    // Ejecutamos el comando
+    def proc = command.execute()
+    proc.waitFor() // Esperamos a que el comando termine
+
+    if (proc.exitValue() == 0) {
+        // Parseamos la salida para extraer los nombres de las ramas
+        proc.text.readLines().each { line ->
+            if (line.contains("refs/heads/")) {
+                def parts = line.split("\\s+")
+                if (parts.size() > 1) {
+                    def branchName = parts[1].replace("refs/heads/", "")
+                    branchList.add(branchName)
+                }
+            }
+        }
+        branchList.sort() // Ordenamos alfabéticamente
+    } else {
+        // Si hay un error, capturamos el mensaje de error de git y lo retornamos.
+        def errorOutput = proc.err.text.trim()
+        println "Error al ejecutar 'git ls-remote' (credenciales): ${errorOutput}" // Esto irá al System Log
+        branchList.add("ERROR: ${errorOutput}") // Mensaje para el usuario en el desplegable
+        // Considera añadir un mensaje más amigable si el error es muy técnico
+    }
+} catch (Throwable e) {
+    // Captura cualquier excepción de Groovy o de la ejecución del comando.
+    println "Excepción en el script del parámetro (credenciales): ${e.getMessage()}" // Esto irá al System Log
+    branchList.add("ERROR: Excepción: ${e.getMessage()}") // Mensaje para el usuario
+}
+
+return branchList
