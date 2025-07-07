@@ -1,0 +1,22 @@
+import jenkins.model.*
+import hudson.plugins.git.*
+
+def oldCredentialId = "cred-anterior"      // 🔁 Cambia por el ID actual
+def newCredentialId = "cred-nueva"         // ✅ Cambia por el nuevo ID
+
+Jenkins.instance.getAllItems(AbstractProject.class).each { job ->
+    def scm = job.getScm()
+    if (scm instanceof GitSCM) {
+        def updated = false
+        scm.getUserRemoteConfigs().each { config ->
+            if (config.credentialsId == oldCredentialId) {
+                println "✅ Actualizando job: ${job.fullName}"
+                config.credentialsId = newCredentialId
+                updated = true
+            }
+        }
+        if (updated) {
+            job.save()
+        }
+    }
+}
