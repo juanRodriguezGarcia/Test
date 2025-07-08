@@ -1,22 +1,50 @@
 import jenkins.model.*
+import org.jenkinsci.plugins.workflow.job.WorkflowJob
+
+Jenkins.instance.getAllItems(WorkflowJob.class).each { job ->
+  println "Pipeline Job: ${job.fullName}"
+  def definition = job.getDefinition()
+  if (definition?.scm) {
+    def scm = definition.scm
+    println " - SCM URL: ${scm.userRemoteConfigs[0].url}"
+    println " - credentialsId: ${scm.userRemoteConfigs[0].credentialsId}"
+  } else {
+    println " - No SCM configurado directamente (probablemente definido en Jenkinsfile del repo)"
+  }
+}
+
+
+
+
+import jenkins.model.*
+import org.jenkinsci.plugins.workflow.job.WorkflowJob
 import hudson.plugins.git.*
 
-def oldCredentialId = "cred-anterior"      // 🔁 Cambia por el ID actual
-def newCredentialId = "cred-nueva"         // ✅ Cambia por el nuevo ID
+def oldCredentialId = "cred-anterior"
+def newCredentialId = "cred-nueva"
 
-Jenkins.instance.getAllItems(AbstractProject.class).each { job ->
-    def scm = job.getScm()
-    if (scm instanceof GitSCM) {
+Jenkins.instance.getAllItems(WorkflowJob.class).each { job ->
+    println "🔍 Job: ${job.fullName}"
+    def definition = job.getDefinition()
+    
+    if (definition?.scm instanceof GitSCM) {
+        def scm = definition.scm
+        def userConfigs = scm.getUserRemoteConfigs()
+        
         def updated = false
-        scm.getUserRemoteConfigs().each { config ->
+        userConfigs.each { config ->
             if (config.credentialsId == oldCredentialId) {
-                println "✅ Actualizando job: ${job.fullName}"
+                println "✅ Reemplazando credenciales en: ${job.fullName}"
                 config.credentialsId = newCredentialId
                 updated = true
             }
         }
+        
         if (updated) {
+            // Save changes back to the job
             job.save()
         }
+    } else {
+        println "⚠️  No SCM o no es GitSCM en ${job.fullName}"
     }
 }
