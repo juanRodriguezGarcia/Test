@@ -27,3 +27,4 @@ app.listen(3000);
                     timeout(time: 30, unit: 'SECONDS') {
                         echo "Opción seleccionada: ${userChoice}"
                     }
+currentBuild.result = 'ABORTED'
