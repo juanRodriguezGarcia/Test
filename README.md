@@ -19,3 +19,11 @@ app.get('/user', (req, res) => {
 });
 
 app.listen(3000);
+
+
+
+
+                    // Timeout de 30 segundos
+                    timeout(time: 30, unit: 'SECONDS') {
+                        echo "Opción seleccionada: ${userChoice}"
+                    }
